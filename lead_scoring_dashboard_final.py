@@ -43,11 +43,14 @@ if uploaded_file:
 
     # Dynamic Bucketing based on Percentile
     df['score_percentile'] = df['lead_score'].rank(pct=True) * 100
+    df['score_percentile'] = df['score_percentile'].clip(lower=0, upper=100)
 
+    bucket_labels = ["Dormant", "Cold", "Curious", "Warm", "Engaged", "Hot"]
     df['lead_bucket'] = pd.cut(
         df['score_percentile'],
-        bins=[-1, 30, 50, 75, 90, 100],
-        labels=["Dormant", "Cold", "Curious", "Warm", "Engaged", "Hot"]
+        bins=[-0.01, 30, 50, 75, 90, 100],
+        labels=bucket_labels,
+        include_lowest=True
     )
 
     # Show Scoring Formula and Weights
@@ -69,7 +72,7 @@ if uploaded_file:
 
     st.subheader("📊 Lead Buckets Distribution")
     fig2, ax2 = plt.subplots()
-    sns.countplot(x='lead_bucket', data=df, order=['Hot', 'Engaged', 'Warm', 'Curious', 'Cold', 'Dormant'], ax=ax2)
+    sns.countplot(x='lead_bucket', data=df, order=bucket_labels, ax=ax2)
     st.pyplot(fig2)
 
     # Download Scored Leads
